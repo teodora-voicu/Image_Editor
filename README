@@ -1,1 +1,75 @@
-//pt mai tz
+- All the image's pixels are stored as dynamically allocated matrices using the `malloc()` and `free()` functions from the `stdlib.h` library.
+
+- I defined a datatype called `image` that holds all the necessary information about the loaded image, including the dynamically allocated pixel matrices.
+
+- I also defined a structure named `filter_values`, which contains the kernel values for the filters that can be applied.
+
+- There are 8 possible commands that can be received from input:
+
+### Commands:
+
+1. **LOAD**  
+   Loads an image from the specified file into memory.
+
+   - Frees the memory of the previously loaded image if it exists.
+   - Stores information from the header, such as magic word, width, height, and max value.
+   - Allocates memory for pixel matrices (1 for grayscale or 3 for RGB).
+   - Depending on the magic word, determines whether the image is plain or binary and reads the values accordingly.
+   - Stores pixel values in the appropriate matrices (gray/red/green/blue).
+   - Selects the entire image.
+
+2. **SELECT ALL**  
+   Selects the entire image. Equivalent to `SELECT 0 0 img->width img->height`.
+
+3. **SELECT**  
+   Selects a portion of the image based on the provided indices.
+
+   - Verifies if the coordinates are valid.
+   - Memorizes the selection.
+
+4. **CROP**  
+   Crops the selection, keeping only the smaller image.
+
+   - Allocates memory for a temporary matrix to represent the cropped channels.
+   - Crops each channel based on the selection and stores values in the temporary matrix.
+   - Frees the memory of the old channels.
+   - Allocates memory for the new, smaller channels and transfers the values.
+   - Frees the temporary matrix.
+
+5. **ROTATE**  
+   Rotates the selected portion of the image by a specified angle.
+
+   - Verifies if the angle is valid.
+   - Rotates the selection for each channel.
+
+   **I.** If the selection is not the entire matrix:
+   - Allocates memory for a temporary matrix for the rotated selection.
+   - Updates the selection with the new values.
+   - Frees the temporary matrix.
+
+   **II.** If the selection is the entire matrix:
+   - Allocates memory for a temporary matrix for the rotated image.
+   - Frees the memory for the current channels (width x height).
+   - Allocates memory for the new channels (height x width).
+   - Updates the channels with the rotated values.
+   - Frees the temporary matrix.
+
+   After rotation, the image's width and height are updated, and the entire image is selected.
+
+6. **APPLY**  
+   Applies one of the filters: EDGE, SHARPEN, BLUR, GAUSSIAN BLUR.
+
+   - Allocates new matrices for each color channel (RGB), initialized with the values of the selection.
+   - Computes the kernel sum for each pixel and updates the selection with the new filtered values.
+   - Frees the temporary matrices.
+
+7. **SAVE [ascii]**  
+   Saves the selected portion of the image to a file.
+
+   - Checks if the keyword `ascii` is present. If so, the image is saved as plain text; otherwise, it is saved as binary.
+   - Writes the new magic word and the image's header to the file.
+   - Saves the pixel values for each channel as plain or binary.
+   - Closes the file.
+
+8. **EXIT**  
+   Frees the memory of the loaded image (if any) and exits the program.
